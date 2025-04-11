@@ -1,7 +1,5 @@
 context = {
 	[0] = 0,
-	[1] = 1,
-	[2] = 2,
 	x = 0,
 	y = 0,
 	size = 10,
@@ -15,25 +13,19 @@ context = {
 			x = 1, y = 0
 		},
 	},
-	42069,
-	"42069",
-	fn = print,
-	{ avb = 0, _1 = 2, "9" },
-	{ 9, 1, {} },
-	-- fileio = io.open("rl.lua", "r")
 }
 
 function init()
 	print("Hello World\n")
+	context.font = load_font(".ttf", 30)
 end
 
 function cleanup()
-
+	unload_font(context.font)
 end
 
 function draw()
-	context.entities.player2.x = (context.entities.player2.x * 2)
-
+	start = os.clock()
 	if context.x < 0 then
 		context.x = 0
 		context.vx = -context.vx
@@ -61,6 +53,9 @@ function draw()
 
 	draw_rect(context.x, context.y, context.size*10, context.size, 0xfff0007f)
 	draw_circle(-context.x+max_width, context.y, context.size, 0x00f0f07f)
+	draw_text(context.font, string.format("Last frame took: %.7fs", os.clock() - start), 0, 0, 30, 1, 0xffffffff)
+
+	draw_text(context.font, os.date("%d/%m/%Y %X"), 0, 500-30, 30, 1, 0xff0000ff)
 end
 
 function printtable(tb, level)
@@ -77,12 +72,9 @@ function printtable(tb, level)
 end
 
 function getcontext()
-	-- io.close(context.fileio)
-	-- context:fn("Reload\n");
 	return context
 end
 
 function setcontext(ncontext)
 	context = ncontext
-	-- printtable(context, 0)
 end
