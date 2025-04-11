@@ -41,40 +41,40 @@ static char *read_file(const char *filepath) {
 }
 
 static int draw_rect(lua_State *L) {
-	lua_Number color = lua_tonumber(L, -1);
-	lua_Number h = lua_tonumber(L, -2);
-	lua_Number w = lua_tonumber(L, -3);
-	lua_Number y = lua_tonumber(L, -4);
-	lua_Number x = lua_tonumber(L, -5);
+	lua_Number color = luaL_checknumber(L, -1);
+	lua_Number h = luaL_checknumber(L, -2);
+	lua_Number w = luaL_checknumber(L, -3);
+	lua_Number y = luaL_checknumber(L, -4);
+	lua_Number x = luaL_checknumber(L, -5);
 
 	DrawRectangleV((Vector2) { x, y }, (Vector2) { w, h }, GetColor(color));
-	return 1;
+	return 0;
 }
 
 static int draw_circle(lua_State *L) {
-	lua_Number color = lua_tonumber(L, -1);
-	lua_Number r = lua_tonumber(L, -2);
-	lua_Number y = lua_tonumber(L, -3);
-	lua_Number x = lua_tonumber(L, -4);
+	lua_Number color = luaL_checknumber(L, -1);
+	lua_Number r = luaL_checknumber(L, -2);
+	lua_Number y = luaL_checknumber(L, -3);
+	lua_Number x = luaL_checknumber(L, -4);
 
 	DrawCircleV((Vector2) { x, y }, r, GetColor(color));
-	return 1;
+	return 0;
 }
 
 static int draw_line(lua_State *L) {
-	lua_Number color = lua_tonumber(L, -1);
-	lua_Number y2 = lua_tonumber(L, -2);
-	lua_Number x2 = lua_tonumber(L, -3);
-	lua_Number y1 = lua_tonumber(L, -4);
-	lua_Number x1 = lua_tonumber(L, -5);
+	lua_Number color = luaL_checknumber(L, -1);
+	lua_Number y2 = luaL_checknumber(L, -2);
+	lua_Number x2 = luaL_checknumber(L, -3);
+	lua_Number y1 = luaL_checknumber(L, -4);
+	lua_Number x1 = luaL_checknumber(L, -5);
 
 	DrawLineV((Vector2) { x1, y1 }, (Vector2) { x2, y2 }, GetColor(color));
-	return 1;
+	return 0;
 }
 
 static int load_font(lua_State *L) {
-	lua_Number size = lua_tonumber(L, -1);
-	const char *name = lua_tostring(L, -2);
+	lua_Number size = luaL_checknumber(L, -1);
+	const char *name = luaL_checkstring(L, -2);
 	printf("Font name: %s\n", name);
 
 	Font *font = malloc(sizeof(Font));
@@ -89,20 +89,20 @@ static int unload_font(lua_State *L) {
 	UnloadFont(*font);
 	free(font);
 
-	return 1;
+	return 0;
 }
 
 static int draw_text(lua_State *L) {
-	lua_Number tint = lua_tonumber(L, -1);
-	lua_Number spacing = lua_tonumber(L, -2);
-	lua_Number size = lua_tonumber(L, -3);
-	lua_Number y = lua_tonumber(L, -4);
-	lua_Number x = lua_tonumber(L, -5);
-	const char *text = lua_tostring(L, -6);
+	lua_Number tint = luaL_checknumber(L, -1);
+	lua_Number spacing = luaL_checknumber(L, -2);
+	lua_Number size = luaL_checknumber(L, -3);
+	lua_Number y = luaL_checknumber(L, -4);
+	lua_Number x = luaL_checknumber(L, -5);
+	const char *text = luaL_checkstring(L, -6);
 	Font *font = (Font*) lua_touserdata(L, -7);
 
 	DrawTextEx(*font, text, (Vector2) { x, y }, size, spacing, GetColor(tint));
-	return 1;
+	return 0;
 }
 
 static void print_table(lua_State *L, int level) {
@@ -179,7 +179,7 @@ static void print_stack(lua_State *L) {
 
 #define err(L) \
 	do { \
-		fprintf(stderr, "%s\n", lua_tostring(L, -1)); \
+		fprintf(stderr, "%s\n", luaL_checkstring(L, -1)); \
 		lua_pop(L, 1); \
 	} while(0)
 
@@ -233,6 +233,7 @@ int main(void) {
 	pcall0n(L, "init", 0);
 
 	bool is_executable = false;
+
 	while(!WindowShouldClose()) {
 		BeginDrawing();
 		ClearBackground(BLACK);
@@ -255,7 +256,8 @@ int main(void) {
 				printf("[C] could not load file\n");
 			}
 			else if (luaL_dostring(L, src) != LUA_OK)  {
-				printf("[Lua]: %s\n", lua_tostring(L, -1));
+				printf("[Lua]: %s\n", luaL_checkstring(L, -1));
+				lua_pop(L, 1);
 			}
 			else {
 				lua_rawgeti(L, LUA_REGISTRYINDEX, r);
@@ -265,7 +267,7 @@ int main(void) {
 				lua_getglobal(L, "setcontext");
 				lua_rawgeti(L, LUA_REGISTRYINDEX, r);
 				if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
-					printf("[Lua] could not execute setcontext: %s\n", lua_tostring(L, -1));
+					printf("[Lua] could not execute setcontext: %s\n", luaL_checkstring(L, -1));
 					lua_pop(L, 1);
 				}
 				lua_pop(L, 1);
